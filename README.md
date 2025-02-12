@@ -8,7 +8,7 @@ A Django application is mounted inside a FastAPI application, which allows you t
 
 ## Feature
 * **Python** 3.12+
-* [Poetry](#https://python-poetry.org/) for dependency management
+* [**Poetry**](https://python-poetry.org/) for dependency management
 * **Docker-ready** (see [here](#docker))
 * **PostgreSQL**
 * **PGAdmin** for database management and convenient table browsing outside the Django admin panel

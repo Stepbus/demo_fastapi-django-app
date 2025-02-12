@@ -1,6 +1,11 @@
+import inspect
 from datetime import datetime, timedelta
 
 import jwt
+from django.contrib.auth import _get_backends, user_login_failed, _clean_credentials
+from django.contrib.auth.backends import ModelBackend
+from django.core.exceptions import PermissionDenied
+from django.views.decorators.debug import sensitive_variables
 from fastapi import HTTPException
 
 from fastapi_app.settings import Config
@@ -53,3 +58,50 @@ def verify_token(token: str):
         raise HTTPException(status_code=401, detail="Token has expired", headers={"WWW-Authenticate": "Bearer"})
     except jwt.InvalidTokenError:
         raise HTTPException(status_code=401, detail="Invalid token", headers={"WWW-Authenticate": "Bearer"})
+
+
+@sensitive_variables("credentials")
+def authenticate(request=None, **credentials):
+    """
+    If the given credentials are valid, return a User object.
+    """
+    for backend, backend_path in _get_backends(return_tuples=True):
+        backend_signature = inspect.signature(backend.authenticate)
+        try:
+            backend_signature.bind(request, **credentials)
+        except TypeError:
+            # This backend doesn't accept these credentials as arguments. Try
+            # the next one.
+            continue
+        try:
+            if isinstance(backend, ModelBackend):
+                user = CustomModelBackend().authenticate(request, **credentials)
+            else:
+                user = backend.authenticate(request, **credentials)
+        except PermissionDenied:
+            # This backend says to stop in our tracks - this user should not be
+            # allowed in at all.
+            break
+        if user is None:
+            continue
+        # Annotate the user object with the path of the backend.
+        user.backend = backend_path
+        return user
+
+    # The credentials supplied are invalid to all backends, fire signal
+    user_login_failed.send(
+        sender=__name__, credentials=_clean_credentials(credentials), request=request
+    )
+
+
+class CustomModelBackend(ModelBackend):
+    """
+    Authenticates against settings.AUTH_USER_MODEL.
+    """
+
+    def user_can_authenticate(self, user):
+        """
+        Reject users with is_active=False. Custom user models that don't have
+        that attribute are allowed.
+        """
+        return True
