@@ -50,7 +50,7 @@ services:
     build: .
     container_name: celery-worker
     working_dir: /app/src
-    command: ["celery", "-A", "django_app.core.celery_app", "worker", "--loglevel=info"]
+    command: ["celery", "-A", "django_app.core.celery_app", "worker", "--loglevel=info", "--concurrency=2"]
     restart: always
     depends_on:
       - redis

@@ -61,7 +61,7 @@ This is SWAGGER documentation
 ```aiignore
 http://0.0.0.0:8000/django/admin/
 ```
-This is django admin panel endpoints.
+This is the Django Admin panel endpoint.
 * Periodic tasks do not run automatically to allow you to control the process.
 * It is also convenient to run tasks through the admin panel.
 * CoinMarketCap requires an API key, which I do not have, but you can add your own key to the database.
@@ -74,15 +74,18 @@ https://pro-api.coinmarketcap.com/v1/blockchain/statistics/latest - BTC COINMARK
 ```
 After logging in to the admin panel, go to the **"Periodic tasks"** table in the **"PERIODIC TASKS"** section.
 
-Create a task for btc.
+Create a task for both providers. Tasks are executed asynchronously
 * Select “Add periodic task” at the top right.
 * Add a Name (any).
-* Select in the _“Task (registered):”_ field - "_**fetch_btc_block**_" task.
+* Select in the _“Task (registered):”_ field - "_**fetch_latest_blocks**_" task.
 * Select the _“Interval Schedule:”_ field. Set the _“Number of Periods:”_ field to _**1**_.
 * Set the _“Interval Period:”_ to _**“Minutes”**_
 
-Create a task for eth. 
-* The same as for btc, just choose a new name and select a task for eth - **_"fetch_eth_block"_**.
 
-#### The results will appear within a minute. 
+#### The results will appear within a minute.
 #### Please note that “Blocks” will be filled with data only for ETH BLOCKCHAIR until you add your api key for COINMARKETCAP
+
+### Security & Task Execution
+* I deliberately do not add any API keys to version control (GIT) due to security risks.
+* Additionally, periodic tasks are not configured to run automatically when the Docker container starts.
+* This setup allows users to manually control network-related processes, such as fetching data from provider websites, ensuring flexibility and security
