@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: postgres:15
+    image: postgres
     container_name: postgres-k1core
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
