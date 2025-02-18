@@ -6,12 +6,13 @@ from fastapi.security import OAuth2PasswordRequestForm
 
 from fastapi_app.dependencies import get_current_user
 from fastapi_app.schemas import UserRegisterSchema, TokenSchema
+from fastapi_app.schemas.auth import UserResponseSchema
 from fastapi_app.utils import create_access_token, create_refresh_token, verify_token
 
 auth_router = APIRouter()
 
 
-@auth_router.post("/signup", response_model=dict, status_code=status.HTTP_201_CREATED)
+@auth_router.post("/signup", response_model=UserResponseSchema, status_code=status.HTTP_201_CREATED)
 def register_user(user_data: UserRegisterSchema):
     """
     Creates a new user account.
@@ -23,12 +24,12 @@ def register_user(user_data: UserRegisterSchema):
             password=user_data.password,
             is_active=True,
         )
-        return {"message": f"User {user_data.username}, {user_data.email} registered successfully"}
+        return UserResponseSchema(username=user.username, email=user.email)
     except IntegrityError:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username or Email already exists")
 
 
-@auth_router.post("/login", response_model=dict, status_code=status.HTTP_200_OK)
+@auth_router.post("/login", response_model=TokenSchema, status_code=status.HTTP_200_OK)
 def login_user(form_data: OAuth2PasswordRequestForm = Depends()):
     """
     Authenticates a user and returns access & refresh tokens.
@@ -69,12 +70,9 @@ def refresh_token(refresh_token: str):
     }
 
 
-@auth_router.get("/me", response_model=dict)
+@auth_router.get("/me", response_model=UserResponseSchema)
 def get_current_user_info(current_user: User = Depends(get_current_user)):
     """
     Returns information about the currently authenticated user.
     """
-    return {
-        "username": current_user.username,
-        "email": current_user.email,
-    }
+    return UserResponseSchema(username=current_user.username, email=current_user.email)

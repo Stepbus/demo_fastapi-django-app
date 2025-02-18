@@ -7,6 +7,12 @@ class UserRegisterSchema(BaseModel):
     password: str
 
 
+class UserResponseSchema(BaseModel):
+    username: str
+    email: str
+
+
 class TokenSchema(BaseModel):
     access_token: str
+    refresh_token: str | None
     token_type: str
